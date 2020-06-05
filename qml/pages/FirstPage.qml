@@ -14,11 +14,31 @@ Page {
     allowedOrientations: Orientation.Portrait
 
     Item {
-        id: enableIcon
-        height: parent.height / 8
-        width: parent.width / 2
+        id: contextIcon
+        height: parent.height / 6
+        width: parent.width / 3
         anchors.bottom: parent.bottom
         anchors.left: parent.left
+        Label {
+            anchors.horizontalCenter: contextIcon.Center
+            text: "Context"
+        }
+        IconButton {
+            anchors.centerIn: parent
+            icon.source: "image://theme/icon-m-media-radio"
+            onClicked: context1.active = !context1.active
+        }
+    }
+    Item {
+        id: enableIcon
+        height: parent.height / 6
+        width: parent.width / 3
+        anchors.bottom: parent.bottom
+        anchors.left: contextIcon.right
+        Label {
+            anchors.horizontalCenter: enableIcon.Center
+            text: "Broadcast"
+        }
         IconButton {
             anchors.centerIn: parent
             icon.source: "image://theme/icon-m-refresh"
@@ -27,10 +47,14 @@ Page {
     }
     Item {
         id: copyIcon
-        height: parent.height / 8
-        width: parent.width / 2
+        height: parent.height / 6
+        width: parent.width / 3
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        Label {
+            anchors.horizontalCenter: copyIcon.Center
+            text: "To Clipboard"
+        }
         IconButton {
             anchors.centerIn: parent
             icon.source: "image://theme/icon-m-clipboard"
@@ -53,23 +77,21 @@ Page {
         Label {
             id: textLine0
             anchors.top: parent.top
-            anchors.horizontalCenter: parent
+            text: "Test #6"
         }
         Label {
             id: textLine1
             anchors.top: textLine0.bottom
-            anchors.horizontalCenter: parent
+            text: context1.active ? "OfonoContextConnection: online" : "OfonoContextConnection: offline"
         }
         Label {
             id: textLine2
             anchors.top: textLine1.bottom
-            anchors.horizontalCenter: parent
-            text: manager.available ? netreg.name : "Ofono not available"
+            text: "Network: " + manager.available ? netreg.name : "Ofono not available"
         }
         Label {
             id: textLine3
             anchors.top: textLine2.bottom
-            anchors.horizontalCenter: parent
             text: textEnabled + ", " + textTopics + ", " + textModemPath + ", " + textBroadcast + ", " + textEmergency
         }
 
@@ -77,7 +99,7 @@ Page {
             id: manager
             onAvailableChanged: {
                 console.log("Ofono is " + available)
-               textLine2.text = manager.available ? netreg.currentOperator["Name"].toString() :"Ofono not available"
+                textLine2.text = "Network: " + manager.available ? netreg.currentOperator["Name"].toString() :"Ofono not available"
             }
             onModemAdded: {
                 console.log("modem added "+modem)
@@ -89,7 +111,6 @@ Page {
            id: ofono1
            Component.onCompleted: {
            //    console.log(manager.modems)
-               textLine0 = manager.modems
            }
            modemPath: manager.modems[0]
         }
@@ -104,10 +125,10 @@ Page {
             id: context1
             contextPath : ofono1.contexts[0]
             Component.onCompleted: {
-                textLine1.text = context1.active ? "online" : "offline"
+                textLine1.text = context1.active ? "OfonoContextConnection: online" : "OfonoContextConnection: offline"
           }
             onActiveChanged: {
-                textLine1.text = context1.active ? "online" : "offline"
+                textLine1.text = "OfonoContextConnection: " + context1.active ? "changed to online" : "changed to offline"
             }
         }
         OfonoNetworkRegistration {
@@ -128,12 +149,12 @@ Page {
         OfonoCellBroadcast {
             id: broadcast
             Component.onCompleted: {
-                textEnabled = (broadcast.enabled) ? "enabled" : "disabled"
-//                textTopics = (broadcast.enabled) ? broadcast.topics : "no topics"
-//                textModemPath = (broadcast.enabled) ? broadcast.modemPath : "no modemPath"
+                textEnabled = "OfonoCellBroadcast: " + broadcast.enabled ? "enabled" : "disabled"
+                textTopics = broadcast.enabled ? broadcast.topics : "no topics"
+                textModemPath = broadcast.enabled ? broadcast.modemPath : "no modemPath"
             }
 //            Component.onEnabledChanged: {
-//                textEnabled = (broadcast.enabled) ? "enabled" : "disabled"
+//                textEnabled = broadcast.enabled ? "enabled" : "disabled"
 //            }
 //            Component.onTopicsChanged: {
 //                textTopics = broadcast.topics
