@@ -6,38 +6,25 @@ Page {
     id: page
 
     property string textEnabled: ""
-    property string textTopics: ""
-    property string textModemPath: ""
-    property string textBroadcast: ""
-    property string textEmergency: ""
+    property string textTopics: "no topic"
+    property string textModemPath: "no modemPath"
+    property string textBroadcast: "no broadcast"
+    property string textEmergency: "no emergency"
 
-    allowedOrientations: Orientation.Portrait
-
-    Item {
-        id: contextIcon
-        height: parent.height / 6
-        width: parent.width / 3
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        Label {
-            anchors.horizontalCenter: contextIcon.Center
-            text: "Context"
-        }
-        IconButton {
-            anchors.centerIn: parent
-            icon.source: "image://theme/icon-m-media-radio"
-            onClicked: context1.active = !context1.active
-        }
+    anchors {
+        margins: Theme.paddingLarge
+        leftMargin: Theme.horizontalPageMargin
+        rightMargin: Theme.horizontalPageMargin
     }
+    allowedOrientations: Orientation.All
+
     Item {
         id: enableIcon
         height: parent.height / 6
-        width: parent.width / 3
-        anchors.bottom: parent.bottom
-        anchors.left: contextIcon.right
-        Label {
-            anchors.horizontalCenter: enableIcon.Center
-            text: "Broadcast"
+        width: parent.width / 2
+        anchors {
+            bottom: parent.bottom
+            left: parent.left
         }
         IconButton {
             anchors.centerIn: parent
@@ -45,15 +32,14 @@ Page {
             onClicked: broadcast.enabled = !broadcast.enabled
         }
     }
+
     Item {
         id: copyIcon
         height: parent.height / 6
-        width: parent.width / 3
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        Label {
-            anchors.horizontalCenter: copyIcon.Center
-            text: "To Clipboard"
+        width: parent.width / 2
+        anchors {
+            bottom: parent.bottom
+            right: parent.right
         }
         IconButton {
             anchors.centerIn: parent
@@ -67,42 +53,61 @@ Page {
         width: parent.width
         anchors {
             top: parent.top
-            margins: Theme.paddingMedium
+            margins: Theme.paddingLarge
         }
         color: "transparent"
 
-//        color: "black"
-//        opacity: Theme.colorScheme == Theme.LightOnDark ? 0.65 : 0.9
-
         Label {
             id: textLine0
-            anchors.top: parent.top
-            text: "Test #6"
+            anchors {
+                top: parent.top
+            }
+            text: "Test #10"
         }
-        Label {
+        TextArea {
             id: textLine1
-            anchors.top: textLine0.bottom
-            text: context1.active ? "OfonoContextConnection: online" : "OfonoContextConnection: offline"
+            anchors {
+                top: textLine0.bottom
+            }
+            label: "OfonoContextConnection"
         }
-        Label {
+        TextArea {
             id: textLine2
-            anchors.top: textLine1.bottom
-            text: "Network: " + manager.available ? netreg.name : "Ofono not available"
+            anchors {
+                top: textLine1.bottom
+            }
+            label: "Network"
+            text: manager.available ? netreg.name : "Ofono not available"
         }
-        Label {
+        TextArea {
             id: textLine3
-            anchors.top: textLine2.bottom
+            anchors {
+                top: textLine2.bottom
+            }
+            label: "OfonoCellBroadcast"
             text: textEnabled + ", " + textTopics + ", " + textModemPath + ", " + textBroadcast + ", " + textEmergency
+            wrapMode: TextEdit.Wrap
+        }
+        TextArea {
+            id: textLine4
+            height: page.height / 4
+            anchors {
+                top: textLine3.bottom
+            }
+            label: "OfonoCellBroadcast object"
+            text: JSON.stringify(broadcast)
+            wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+            autoScrollEnabled: true
         }
 
         OfonoManager {
             id: manager
             onAvailableChanged: {
                 console.log("Ofono is " + available)
-                textLine2.text = "Network: " + manager.available ? netreg.currentOperator["Name"].toString() :"Ofono not available"
+                textLine2.text = manager.available ? netreg.currentOperator["Name"].toString() :"Ofono not available"
             }
             onModemAdded: {
-                console.log("modem added "+modem)
+//                console.log("modem added "+modem)
             }
             onModemRemoved: console.log("modem removed")
         }
@@ -117,7 +122,7 @@ Page {
 
         OfonoModem {
             id: modem1
-           modemPath: manager.modems[0]
+            modemPath: manager.modems[0]
 
         }
 
@@ -125,12 +130,13 @@ Page {
             id: context1
             contextPath : ofono1.contexts[0]
             Component.onCompleted: {
-                textLine1.text = context1.active ? "OfonoContextConnection: online" : "OfonoContextConnection: offline"
+                textLine1.text = context1.active ? "online" : "offline"
           }
             onActiveChanged: {
-                textLine1.text = "OfonoContextConnection: " + context1.active ? "changed to online" : "changed to offline"
+                textLine1.text = context1.active ? "changed to online" : "changed to offline"
             }
         }
+
         OfonoNetworkRegistration {
             modemPath: manager.modems[0]
             id: netreg
@@ -139,9 +145,10 @@ Page {
             }
 
           onNetworkOperatorsChanged : {
-              console.log("operators :"+netreg.currentOperator["Name"].toString())
+//              console.log("operators :"+netreg.currentOperator["Name"].toString())
             }
         }
+
         OfonoNetworkOperator {
             id: netop
         }
@@ -149,24 +156,26 @@ Page {
         OfonoCellBroadcast {
             id: broadcast
             Component.onCompleted: {
-                textEnabled = "OfonoCellBroadcast: " + broadcast.enabled ? "enabled" : "disabled"
-                textTopics = broadcast.enabled ? broadcast.topics : "no topics"
-                textModemPath = broadcast.enabled ? broadcast.modemPath : "no modemPath"
+                textEnabled = broadcast.enabled ? "enabled" : "disabled"
+                textTopics = broadcast.topics
+                textModemPath = broadcast.modemPath
+//                textBroadcast = broadcast.valid ? "valid" : "invalid"
+//                textEmergency = broadcast.toString()
             }
-//            Component.onEnabledChanged: {
-//                textEnabled = broadcast.enabled ? "enabled" : "disabled"
+            onEnabledChanged: {
+                textEnabled = broadcast.enabled ? "changed to enabled" : "changed to disabled"
+            }
+            onTopicsChanged: {
+                textTopics = broadcast.topics
+            }
+            onModemPathChanged: {
+                textModemPath = broadcast.modemPath
+            }
+//            onIncomingBroadcast: {
+//                textBroadcast = broadcast.incomingBroadcast.toString()
 //            }
-//            Component.onTopicsChanged: {
-//                textTopics = broadcast.topics
-//            }
-//            Component.onModemPathChanged: {
-//                textModemPath = broadcast.modemPath
-//            }
-//            Component.onIncomingBroadcast: {
-//                textBroadcast = broadcast.topics
-//            }
-//            Component.onEmergencyBroadcast: {
-//                textEmergency = broadcast.topics
+//            onEmergencyBroadcast: {
+//                textEmergency = broadcast.
 //            }
         }
     }
