@@ -1,15 +1,10 @@
 import QtQuick 2.0
 import MeeGo.QOfono 0.2
+import QtMultimedia 5.0
 import Sailfish.Silica 1.0
 
 Page {
     id: page
-
-    property string textEnabled: ""
-    property string textTopics: "no topic"
-    property string textModemPath: "no modemPath"
-    property string textBroadcast: "no broadcast"
-    property string textEmergency: "no emergency"
 
     anchors {
         margins: Theme.paddingLarge
@@ -17,6 +12,11 @@ Page {
         rightMargin: Theme.horizontalPageMargin
     }
     allowedOrientations: Orientation.All
+
+    Audio {
+        id: notifAudio
+        source: "./enabled.ogg"
+    }
 
     Item {
         id: enableIcon
@@ -44,7 +44,7 @@ Page {
         IconButton {
             anchors.centerIn: parent
             icon.source: "image://theme/icon-m-clipboard"
-            onClicked: Clipboard.text = textLine1.text + " - " + textLine2.text + " - " + textLine3.text
+            onClicked: Clipboard.text = textLine1.text + " - " + textLine2.text + " - " + textLine3.text + " - " + textLine4.text
         }
     }
 
@@ -62,7 +62,7 @@ Page {
             anchors {
                 top: parent.top
             }
-            text: "Test #10"
+            text: "Test #12"
         }
         TextArea {
             id: textLine1
@@ -134,6 +134,9 @@ Page {
           }
             onActiveChanged: {
                 textLine1.text = context1.active ? "changed to online" : "changed to offline"
+                if (context1.active) {
+                    notifAudio.play()
+                }
             }
         }
 
@@ -156,27 +159,30 @@ Page {
         OfonoCellBroadcast {
             id: broadcast
             Component.onCompleted: {
-                textEnabled = broadcast.enabled ? "enabled" : "disabled"
-                textTopics = broadcast.topics
-                textModemPath = broadcast.modemPath
-//                textBroadcast = broadcast.valid ? "valid" : "invalid"
-//                textEmergency = broadcast.toString()
+                generic.textEnabled = broadcast.enabled ? "enabled" : "disabled"
+                generic.textTopics = broadcast.topics
+                generic.textModemPath = broadcast.modemPath
+//                generic.textBroadcast = broadcast.valid ? "valid" : "invalid"
+//                generic.textEmergency = broadcast.toString()
             }
             onEnabledChanged: {
-                textEnabled = broadcast.enabled ? "changed to enabled" : "changed to disabled"
+                generic.textEnabled = broadcast.enabled ? "changed to enabled" : "changed to disabled"
+                if (broadcast.enabled) {
+                    notifAudio.play()
+                }
             }
             onTopicsChanged: {
-                textTopics = broadcast.topics
+                generic.textTopics = broadcast.topics
             }
             onModemPathChanged: {
-                textModemPath = broadcast.modemPath
+                generic.textModemPath = broadcast.modemPath
             }
-//            onIncomingBroadcast: {
-//                textBroadcast = broadcast.incomingBroadcast.toString()
-//            }
-//            onEmergencyBroadcast: {
-//                textEmergency = broadcast.
-//            }
+            onIncomingBroadcast: {
+                notifAudio.play()
+            }
+            onEmergencyBroadcast: {
+                notifAudio.play()
+            }
         }
     }
 
